@@ -18,8 +18,8 @@ import (
 
 const (
 	DefaultServerCertCommonName = "ruijie"
-	DefaultServerCertFile       = "tls/etcd/server.crt"
-	DefaultServerKeyFile        = "tls/etcd/server.key"
+	DefaultServerCertFile       = "tls/server.crt"
+	DefaultServerKeyFile        = "tls/server.key"
 	DefaultPKIPath              = "tls"
 	DefaultCAName               = "ca"
 )
@@ -41,9 +41,9 @@ func init() {
 
 func main() {
 
-	if err := kubeCerts(kubeCtrlIP, kubeNodeIP, kubeServiceIP, kubeNodename); err != nil {
-		klog.Fatalf(err.Error())
-	}
+	//if err := kubeCerts(kubeCtrlIP, kubeNodeIP, kubeServiceIP, kubeNodename); err != nil {
+	//	klog.Fatalf(err.Error())
+	//}
 	if err := serverCerts(); err != nil {
 		klog.Fatalf(err.Error())
 	}
