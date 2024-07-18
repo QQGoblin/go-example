@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo-request
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: echo-request
+  template:
+    metadata:
+      labels:
+        app: echo-request
+    spec:
+      containers:
+        - name: echo-request
+          image: registry.lqingcloud.cn/library/echo-request:latest
+          imagePullPolicy: Always
+          args: ["--tls"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: echo-request
+spec:
+  ports:
+    - name: tcp-8181
+      port: 8181
+      protocol: TCP
+      targetPort: 8181
+  selector:
+    app: echo-request
+  type: ClusterIP

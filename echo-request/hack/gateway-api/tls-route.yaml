@@ -1,0 +1,13 @@
+---
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
+metadata:
+  name: echo-request
+spec:
+  parentRefs:
+  - name: echo-gateway
+    sectionName: echo-gateway-tls
+  rules:
+  - backendRefs:
+    - name: echo-request
+      port: 8181
