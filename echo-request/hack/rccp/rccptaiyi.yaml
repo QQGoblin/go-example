@@ -1,0 +1,42 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: rccptaiyi
+  namespace: sp
+spec:
+  parentRefs:
+  - name: rccptaiyi-gateway
+    namespace: sp
+    sectionName: rccptaiyi-gw
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: "/rccp/gss/iac"
+    filters:
+      - type: URLRewrite
+        urlRewrite:
+          path:
+            type: ReplacePrefixMatch
+            replacePrefixMatch: /gss/iac
+      - type: RequestHeaderModifier
+        requestHeaderModifier:
+          add:
+            - name: "Access-Control-Allow-Origin"
+              value: "*"
+            - name: "Access-Control-Allow-Methods"
+              value: "GET, POST, OPTIONS"
+            - name: "Access-Control-Allow-Headers"
+              value: "*"
+    backendRefs:
+    - name: gss-cluster-ip
+      port: 9375
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: rccptaiyi-cluster-ip
+      port: 9230
+

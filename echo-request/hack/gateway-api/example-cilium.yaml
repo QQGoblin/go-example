@@ -1,0 +1,28 @@
+# run with gateway-api 1.1.0
+# run with cilium 1.16.0
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: echo-gateway-cilium
+spec:
+  gatewayClassName: cilium
+  listeners:
+    - protocol: TLS
+      port: 18443
+      name: tls
+      tls:
+        mode: Passthrough
+---
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
+metadata:
+  name: echo-gateway-cilium
+spec:
+  parentRefs:
+    - name: echo-gateway-cilium
+      sectionName: tls
+  rules:
+    - backendRefs:
+        - name: echo-request
+          port: 8181

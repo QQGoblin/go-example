@@ -1,0 +1,25 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: rccp-gateway
+  namespace: sp
+spec:
+  gatewayClassName: cilium
+  listeners:
+    - protocol: HTTPS
+      port: 9230
+      name: rccptaiyi-gw
+      tls:
+        certificateRefs:
+          - kind: Secret
+            group: ""
+            name: rccpserver-default-tls
+    - protocol: HTTPS
+      port: 8443
+      name: default-gw
+      tls:
+        certificateRefs:
+          - kind: Secret
+            group: ""
+            name: rccpserver-default-tls
