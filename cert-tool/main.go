@@ -26,7 +26,11 @@ const (
 	DefaultServerKeyFile        = "tls/server.key"
 	DefaultPKIPath              = "tls"
 	DefaultCAName               = "ca"
-	DefaultCAFile               = "tls/ca.crt"
+)
+
+var (
+	DefaultCAFile    = fmt.Sprintf("tls/%s.crt", DefaultCAName)
+	DefaultCAKeyFile = fmt.Sprintf("tls/%s.key", DefaultCAName)
 )
 
 var (
@@ -46,12 +50,18 @@ func init() {
 
 func main() {
 
-	if err := kubeCerts(kubeCtrlIP, kubeNodeIP, kubeServiceIP, kubeNodename); err != nil {
+	if err := caCerts(); err != nil {
 		klog.Fatalf(err.Error())
 	}
+
 	if err := serverCerts(); err != nil {
 		klog.Fatalf(err.Error())
 	}
+
+	if err := kubeCerts(kubeCtrlIP, kubeNodeIP, kubeServiceIP, kubeNodename); err != nil {
+		klog.Fatalf(err.Error())
+	}
+
 }
 
 func serverCerts() error {
@@ -106,7 +116,7 @@ func serverCerts() error {
 	}
 
 	// 写入证书文件
-	if err := certutil.WriteCert(DefaultServerCertFile, pkiutil.EncodeCertPEM(cert)); err != nil {
+	if err = certutil.WriteCert(DefaultServerCertFile, pkiutil.EncodeCertPEM(cert)); err != nil {
 		return err
 	}
 
@@ -115,7 +125,7 @@ func serverCerts() error {
 	if err != nil {
 		return err
 	}
-	if err := keyutil.WriteKey(DefaultServerKeyFile, encoded); err != nil {
+	if err = keyutil.WriteKey(DefaultServerKeyFile, encoded); err != nil {
 		return err
 	}
 	return nil
@@ -191,4 +201,53 @@ func genAuthorityKeyIdentifierValue(caCert []byte) ([]byte, error) {
 	}
 
 	return asn1.Marshal(authKeyId)
+}
+
+func caCerts() error {
+	notBefore, _ := time.Parse("2006-01-02 15:04:05", "1970-01-01 00:00:00")
+	notAfter, _ := time.Parse("2006-01-02 15:04:05", "2170-01-01 00:00:00")
+	serial, _ := cryptorand.Int(cryptorand.Reader, new(big.Int).SetInt64(math.MaxInt64))
+
+	caCertTempl := &x509.Certificate{
+		Subject: pkix.Name{
+			CommonName: DefaultServerCertCommonName,
+		},
+		DNSNames:              []string{},
+		SerialNumber:          serial,
+		NotBefore:             notBefore,
+		NotAfter:              notAfter,
+		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+	}
+
+	key, err := pkiutil.NewPrivateKey(x509.RSA)
+	if err != nil {
+		return err
+	}
+	certDERBytes, err := x509.CreateCertificate(cryptorand.Reader, caCertTempl, caCertTempl, key.Public(), key)
+	if err != nil {
+		return err
+	}
+
+	cacert, err := x509.ParseCertificate(certDERBytes)
+	if err != nil {
+		return err
+	}
+
+	// 写入CA文件
+	if err = certutil.WriteCert(DefaultCAFile, pkiutil.EncodeCertPEM(cacert)); err != nil {
+		return err
+	}
+
+	// 写入Key文件
+	encoded, err := keyutil.MarshalPrivateKeyToPEM(key)
+	if err != nil {
+		return err
+	}
+	if err = keyutil.WriteKey(DefaultCAKeyFile, encoded); err != nil {
+		return err
+	}
+
+	return nil
 }
