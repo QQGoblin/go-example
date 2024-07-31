@@ -37,8 +37,12 @@ spec:
   parentRefs:
     - name: echo-gateway-nginx-tls
       sectionName: https
-  hostnames:
-    - "echo-request"
+# 注意：
+# 1. 指定 nginx 指定 server_name，此时 Client 只能通过对应域名访问到指定的 server ，使用 IP 访问将返回 404
+# 2. 通过指定不同的 server_name ，可以使不同服务共用一个端口，功能类似 ingress
+# 3. 如果不指定 server_name，则可以使用 IP 地址访问。
+#  hostnames:
+#    - "echo-request"
   rules:
     - matches:
         - path:

@@ -1,0 +1,81 @@
+# run gateway-api 1.0.0
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: BackendTLSPolicy
+metadata:
+  name: rccptaiyi
+  namespace: sp
+spec:
+  targetRef:
+    kind: Service
+    name: rccptaiyi-cluster-ip
+    group: ""
+  tls:
+    caCertRefs:
+      - kind: ConfigMap
+        name: default-rccpserver-cacert
+        group: ""
+    # nginx 转发请求到 Pod 时使用该域名，因此 Pod 使用的服务端证书需要包含该 DNS 签名
+    hostname: rccptaiyi-cluster-ip
+---
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: BackendTLSPolicy
+metadata:
+  name: gss
+  namespace: sp
+spec:
+  targetRef:
+    kind: Service
+    name: gss-cluster-ip
+    group: ""
+  tls:
+    caCertRefs:
+      - kind: ConfigMap
+        name: default-rccpserver-cacert
+        group: ""
+    # nginx 转发请求到 Pod 时使用该域名，因此 Pod 使用的服务端证书需要包含该 DNS 签名
+    hostname: gss-cluster-ip
+---
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: BackendTLSPolicy
+metadata:
+  name: rccptang
+  namespace: sp
+spec:
+  targetRef:
+    kind: Service
+    name: rccptang-cluster-ip
+    group: ""
+  tls:
+    caCertRefs:
+      - kind: ConfigMap
+        name: default-rccpserver-cacert
+        group: ""
+    # nginx 转发请求到 Pod 时使用该域名，因此 Pod 使用的服务端证书需要包含该 DNS 签名
+    hostname: rccptang-cluster-ip
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: default-rccpserver-cacert
+  namespace: sp
+data:
+  ca.crt: |
+    -----BEGIN CERTIFICATE-----
+    MIIDBTCCAe2gAwIBAgICEAAwDQYJKoZIhvcNAQELBQAwETEPMA0GA1UEAwwGcnVp
+    amllMCIYDzE5NzAwMTAxMDAwMDAwWhgPMzAxOTA2MjkwOTMzMzFaMBExDzANBgNV
+    BAMMBnJ1aWppZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAK40FQ0E
+    82DW3EVCqT639z8BrSXXnC5gxARAIP3nq2FBltQjYB5b7eAZgv8uh5FvsL5G36Fl
+    UbOcXQjzhnMfM5NO+AdMgmwz/3sIacmfNXOxqCyAfNQULVi7se2MP6GcTEv6773l
+    hZSSrAAorANN1MbyGJ3aI0A4NpktFsGhfpvVABUjGe8t6h8GSadA3TEL9dLlIyNP
+    azPTgyS7CQaZKrwR81rF7i0wi8AO9TQWepjlnzfTgdUOHnddKJpfl/CAhng2HIDh
+    w4tcB+hTS74u0W7ySj4KqKqAHr4OVmB7PaRveuOGCfwQ9OtEsD7QXPuFMSKO+TMC
+    OYwqbg5oYM8nAKcCAwEAAaNjMGEwHQYDVR0OBBYEFNa46Z4BWeJmcPpmmXKW+7lV
+    ofOcMB8GA1UdIwQYMBaAFNa46Z4BWeJmcPpmmXKW+7lVofOcMA8GA1UdEwEB/wQF
+    MAMBAf8wDgYDVR0PAQH/BAQDAgGGMA0GCSqGSIb3DQEBCwUAA4IBAQARIJSL0+9y
+    MwG6Cto7Z7Ymf3uK3iJDgaQg0zId/WBEm/kAW8/9tW4SK1qXVsRFlRhGFy2KiEWU
+    8/S0yDKLUCUnCpUWgqspwcY/R5VIFJC5wrtA+CBTV/a/aciFcMSdjzWIZCwjbh7V
+    FJR3Yse6I/O7spJ6rVg220pyIo2fU9njCJpWHvccXn8lxVUYN+8y1INJVCGzcz41
+    7fTUahPKX8mf8jbfxmjmosKCUMie4aMYyEITVcSBeO4XneFKsSZt0OAUjKvXtBO0
+    UnP/RhB3cVL7OSK8xShp411fL56MHX04673ZI4AG8E3QW1xGzkrxK//gWFTIbbMO
+    FjHg54KZHyoQ
+    -----END CERTIFICATE-----
