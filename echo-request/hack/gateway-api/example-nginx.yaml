@@ -17,6 +17,7 @@ spec:
           - kind: Secret
             group: ""
             name: default-gateway-tls
+        mode: Terminate
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -28,6 +29,7 @@ spec:
       sectionName: https
   hostnames:
     - "cafe.example.com"
+    - "echo-request-server"
   rules:
     - matches:
         - path:

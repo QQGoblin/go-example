@@ -4,15 +4,19 @@ import (
 	cryptorand "crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/asn1"
+	"encoding/pem"
 	"flag"
 	"fmt"
 	"github.com/QQGoblin/go-sdk/pkg/pkiutil"
+	"github.com/pkg/errors"
 	certutil "k8s.io/client-go/util/cert"
 	"k8s.io/client-go/util/keyutil"
 	"k8s.io/klog/v2"
 	"math"
 	"math/big"
 	"net"
+	"os"
 	"time"
 )
 
@@ -22,6 +26,7 @@ const (
 	DefaultServerKeyFile        = "tls/server.key"
 	DefaultPKIPath              = "tls"
 	DefaultCAName               = "ca"
+	DefaultCAFile               = "tls/ca.crt"
 )
 
 var (
@@ -41,9 +46,9 @@ func init() {
 
 func main() {
 
-	//if err := kubeCerts(kubeCtrlIP, kubeNodeIP, kubeServiceIP, kubeNodename); err != nil {
-	//	klog.Fatalf(err.Error())
-	//}
+	if err := kubeCerts(kubeCtrlIP, kubeNodeIP, kubeServiceIP, kubeNodename); err != nil {
+		klog.Fatalf(err.Error())
+	}
 	if err := serverCerts(); err != nil {
 		klog.Fatalf(err.Error())
 	}
@@ -56,6 +61,15 @@ func serverCerts() error {
 	notAfter, _ := time.Parse("2006-01-02 15:04:05", "2170-01-01 00:00:00")
 	serial, _ := cryptorand.Int(cryptorand.Reader, new(big.Int).SetInt64(math.MaxInt64))
 
+	caCertByte, err := os.ReadFile(DefaultCAFile)
+	if err != nil {
+		return errors.Wrapf(err, "read ca cert file")
+	}
+	authorityKeyId, err := genAuthorityKeyIdentifierValue(caCertByte)
+	if err != nil {
+		return errors.Wrapf(err, "generate authority identifier")
+	}
+
 	serverCertTempl := &x509.Certificate{
 		Subject: pkix.Name{
 			CommonName: DefaultServerCertCommonName,
@@ -63,9 +77,7 @@ func serverCerts() error {
 		IPAddresses: []net.IP{
 			net.ParseIP("127.0.0.1"),
 		},
-		DNSNames: []string{
-			"*",
-		},
+		DNSNames:              []string{},
 		SerialNumber:          serial,
 		NotBefore:             notBefore,
 		NotAfter:              notAfter,
@@ -73,6 +85,12 @@ func serverCerts() error {
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
 		BasicConstraintsValid: true,
 		IsCA:                  false,
+		ExtraExtensions: []pkix.Extension{
+			{
+				Id:    asn1.ObjectIdentifier{2, 5, 29, 35},
+				Value: authorityKeyId,
+			},
+		},
 	}
 
 	// 读取根证书
@@ -153,4 +171,24 @@ func kubeCerts(ctrlIP, nodeIP, svcIP string, nodeName string) error {
 		}
 	}
 	return err
+}
+
+func genAuthorityKeyIdentifierValue(caCert []byte) ([]byte, error) {
+
+	b, _ := pem.Decode(caCert)
+	if b == nil {
+		return nil, errors.New("decode ca certificate failed")
+	}
+	issuer, err := x509.ParseCertificate(b.Bytes)
+	if err != nil {
+		panic(err)
+	}
+
+	authKeyId := struct {
+		KeyIdentifier []byte `asn1:"optional,tag:0"`
+	}{
+		KeyIdentifier: issuer.SubjectKeyId,
+	}
+
+	return asn1.Marshal(authKeyId)
 }

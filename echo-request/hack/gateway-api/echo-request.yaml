@@ -49,6 +49,23 @@ spec:
         group: ""
     hostname: echo-request-server
 ---
+# run gateway-api 1.0.0
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: BackendTLSPolicy
+metadata:
+  name: echo-request
+spec:
+  targetRef:
+    kind: Service
+    name: echo-request
+    group: ""
+  tls:
+    caCertRefs:
+      - kind: ConfigMap
+        name: default-gateway-tls
+        group: ""
+    hostname: echo-request-server
+---
 apiVersion: v1
 kind: Secret
 metadata:
