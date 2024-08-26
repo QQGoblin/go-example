@@ -32,7 +32,7 @@ func (s *server) Server(ctx context.Context, apply ApplyMessage) error {
 		n, remoteAddr, err := listener.ReadFromUDP(data)
 		apply(&BroadcastMessage{
 			Message: data[:n],
-			remote:  remoteAddr,
+			Remote:  remoteAddr,
 		})
 
 		select {

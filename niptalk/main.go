@@ -3,7 +3,7 @@ package main
 import (
 	udpcmd "github.com/QQGoblin/niptalk/cmd/udp"
 	"github.com/spf13/cobra"
-	"k8s.io/klog/v2"
+	"k8s.io/klog"
 	"os"
 )
 

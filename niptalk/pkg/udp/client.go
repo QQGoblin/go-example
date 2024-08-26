@@ -35,6 +35,13 @@ func (c *client) Close() {
 	}
 }
 
+func (c *client) SourceAddress() string {
+	if c.conn == nil {
+		return ""
+	}
+	return c.conn.LocalAddr().String()
+}
+
 func (c *client) Broadcast(message string) error {
 
 	if _, err := c.conn.WriteToUDP([]byte(message), &net.UDPAddr{IP: net.IPv4bcast, Port: c.bPort}); err != nil {
@@ -52,7 +59,7 @@ func (c *client) WaitBroadcastReply(ctx context.Context, apply ApplyMessage) err
 
 		apply(&BroadcastMessage{
 			Message: data[:n],
-			remote:  remoteAddr,
+			Remote:  remoteAddr,
 		})
 		select {
 		case <-ctx.Done():
