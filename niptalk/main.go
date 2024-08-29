@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/QQGoblin/niptalk/cmd/ipproto"
 	udpcmd "github.com/QQGoblin/niptalk/cmd/udp"
 	"github.com/spf13/cobra"
 	"k8s.io/klog"
@@ -15,7 +16,7 @@ func NewCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(udpcmd.Command)
-
+	cmd.AddCommand(ipproto.Command)
 	return cmd
 
 }
